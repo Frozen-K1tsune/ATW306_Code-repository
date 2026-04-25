@@ -1,0 +1,12 @@
+name = "juristflowprototype1"
+main = "index.js"
+compatibility_date = "2026-04-21"
+
+[vars]
+ENVIRONMENT = "production"
+
+# Secrets required — set via CLI or Dashboard:
+#
+#   GEMINI_API_KEY — Your Google Gemini API key
+#                    Get one free at: https://aistudio.google.com/app/apikey
+#                    Set via: echo "AIzaSyBJPcbjuEfqicof8U610MOuI948NwhBq7w" | wrangler secret put GEMINI_API_KEY

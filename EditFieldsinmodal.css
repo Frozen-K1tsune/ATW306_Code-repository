@@ -1,0 +1,6 @@
+/* ── EDIT FIELDS IN MODAL ──────────────────────────────────── */
+.edit-field{width:100%;background:var(--navy-mid);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;resize:vertical;min-height:60px;transition:border-color .2s}
+.edit-field:focus{border-color:var(--gold)}
+.edit-field.single{min-height:unset;height:38px;resize:none}
+.edit-mode-bar{display:none;align-items:center;gap:8px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--gold);font-weight:600}
+.edit-mode-bar.on{display:flex}

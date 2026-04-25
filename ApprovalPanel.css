@@ -1,0 +1,11 @@
+/* ── APPROVAL PANEL (admin) ────────────────────────────────── */
+.approval-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:13px}
+.approval-item-info{flex:1}
+.approval-item-title{font-size:13px;font-weight:600;color:var(--white);margin-bottom:2px}
+.approval-item-meta{font-size:11px;color:var(--slate)}
+.approval-actions{display:flex;gap:7px;flex-shrink:0}
+.aapprove{height:32px;padding:0 14px;border-radius:7px;border:none;background:rgba(74,171,124,.15);border:1px solid rgba(74,171,124,.35);color:var(--low);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.aapprove:hover{background:rgba(74,171,124,.28)}
+.adeny{height:32px;padding:0 14px;border-radius:7px;border:1px solid rgba(217,95,95,.35);background:rgba(217,95,95,.08);color:var(--urgent);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.adeny:hover{background:rgba(217,95,95,.18)}
+.empty-approvals{text-align:center;padding:40px 20px;color:var(--slate);font-size:13px}

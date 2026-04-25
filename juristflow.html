@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JuristFlow — AI Legal Repository</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
+<style>
+:root{
+  --navy:#0c1624;--navy-mid:#162030;--navy-light:#1f3050;
+  --gold:#c9a84c;--gold-lt:#e2c47a;--gold-dim:rgba(201,168,76,0.12);
+  --cream:#eee8da;--slate:#7a90aa;--white:#fff;
+  --urgent:#d95f5f;--moderate:#d4914a;--low:#4aab7c;
+  --card:#13202f;--border:rgba(201,168,76,0.14);--r:12px;
+}
+
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--cream);min-height:100vh;overflow:hidden}
+/* ── APP SHELL ──────────────────────────────────────────────────── */
+#app{display:none;height:100vh;flex-direction:row}
+#app.on{display:flex}
+
+.sidebar{width:240px;background:#0a1520;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.logo{padding:26px 22px 22px;border-bottom:1px solid var(--border)}
+.logo-mark{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--white)}
+.logo-mark span{color:var(--gold)}
+.logo-tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--slate);margin-top:3px}
+.nav{padding:14px 0;flex:1}
+.ngl{font-size:9px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--slate);padding:12px 22px 5px}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 22px;font-size:13px;color:var(--slate);cursor:pointer;border-left:2px solid transparent;transition:all .15s}
+.ni:hover{color:var(--cream);background:rgba(255,255,255,.03)}.ni.on{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,.06)}
+.ni .ic{font-size:14px;width:18px;text-align:center}
+.nc{margin-left:auto;background:var(--gold-dim);color:var(--gold);font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;font-family:'DM Mono',monospace}
+.nc.red{background:rgba(217,95,95,.15);color:var(--urgent)}
+.sfoot{padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--navy);flex-shrink:0}
+.logout-btn{margin-left:auto;background:transparent;border:none;color:var(--slate);cursor:pointer;font-size:16px;padding:4px;transition:color .15s;border-radius:4px}
+.logout-btn:hover{color:var(--urgent)}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:58px;background:rgba(10,21,32,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 26px;gap:12px;flex-shrink:0}
+.ptitle{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:var(--white);margin-right:auto}
+.aidot{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gold);font-weight:500}
+.pulse{width:6px;height:6px;background:var(--gold);border-radius:50%;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+.srch{display:flex;align-items:center;background:var(--navy-mid);border:1px solid var(--border);border-radius:8px;padding:0 12px;height:34px;gap:7px;width:210px}
+.srch input{background:none;border:none;outline:none;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;width:100%}
+.srch input::placeholder{color:var(--slate)}
+.role-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.08em;background:var(--gold-dim);color:var(--gold)}
+
+.btn{height:34px;padding:0 15px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .17s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.bgold{background:var(--gold);color:var(--navy)}.bgold:hover{background:var(--gold-lt);transform:translateY(-1px)}
+.bgh{background:transparent;color:var(--slate);border:1px solid var(--border)}.bgh:hover{color:var(--cream);border-color:var(--slate)}
+.bsm{height:28px;padding:0 11px;font-size:12px}
+.bdng{background:transparent;border:1px solid rgba(217,95,95,.4);color:var(--urgent)}.bdng:hover{background:rgba(217,95,95,.1)}
+
+.content{flex:1;overflow-y:auto;padding:22px 26px}
+.content::-webkit-scrollbar{width:3px}
+.content::-webkit-scrollbar-thumb{background:var(--navy-light);border-radius:3px}
+
+.page{display:none;animation:fu .2s ease}.page.on{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+/* ── LOGIN ─────────────────────────────────────────────────────── */
+#login-screen{
+  position:fixed;inset:0;background:var(--navy);z-index:999;
+  display:flex;align-items:center;justify-content:center;
+  animation:fadeIn .4s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.login-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(201,168,76,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 20%, rgba(31,48,80,0.8) 0%, transparent 60%);
+}
+.login-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(201,168,76,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.04) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+
+.login-card{
+  position:relative;z-index:1;
+  width:420px;max-width:95vw;
+  background:rgba(19,32,47,0.95);
+  border:1px solid rgba(201,168,76,0.2);
+  border-radius:20px;
+  padding:40px 36px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 32px 80px rgba(0,0,0,0.5);
+}
+
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo-text{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--white)}
+.login-logo-text span{color:var(--gold)}
+.login-logo-sub{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--slate);margin-top:4px}
+.login-divider{width:40px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:16px auto 0}
+
+.login-welcome{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--white);text-align:center;margin-bottom:6px}
+.login-sub{font-size:12.5px;color:var(--slate);text-align:center;margin-bottom:28px}
+
+.field-group{margin-bottom:16px}
+.field-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);margin-bottom:7px;display:block}
+.field-input{
+  width:100%;background:var(--navy-mid);border:1px solid var(--border);
+  border-radius:9px;padding:11px 14px;
+  color:var(--cream);font-family:'DM Sans',sans-serif;font-size:14px;
+  outline:none;transition:border-color .2s;
+}
+.field-input:focus{border-color:var(--gold)}
+.field-input::placeholder{color:var(--slate)}
+
+.login-accounts{
+  background:rgba(201,168,76,0.05);border:1px solid var(--border);
+  border-radius:9px;padding:14px;margin-bottom:20px;
+}
+.la-title{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:10px}
+.la-item{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;
+  border-radius:7px;cursor:pointer;transition:background .15s;margin-bottom:4px;
+}
+.la-item:last-child{margin-bottom:0}
+.la-item:hover{background:rgba(201,168,76,0.08)}
+.la-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.la-info{flex:1}
+.la-name{font-size:12.5px;font-weight:500;color:var(--cream)}
+.la-role{font-size:10.5px;color:var(--slate)}
+.la-pw{font-family:'DM Mono',monospace;font-size:10px;color:rgba(201,168,76,0.6);margin-left:auto}
+
+.login-btn{
+  width:100%;height:44px;background:var(--gold);color:var(--navy);
+  border:none;border-radius:9px;font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:600;cursor:pointer;
+  transition:all .2s;letter-spacing:.02em;
+}
+.login-btn:hover{background:var(--gold-lt);transform:translateY(-1px);box-shadow:0 8px 24px rgba(201,168,76,0.25)}
+.login-btn:active{transform:none}
+
+.login-error{
+  background:rgba(217,95,95,0.1);border:1px solid rgba(217,95,95,0.3);
+  border-radius:8px;padding:10px 14px;
+  font-size:12.5px;color:var(--urgent);margin-bottom:16px;display:none;
+}
+.login-error.show{display:block}
+
+
+/* STATS */
+.srow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden;transition:transform .2s,border-color .2s}
+.sc:hover{transform:translateY(-2px);border-color:rgba(201,168,76,.28)}
+.sc::after{content:'';position:absolute;top:0;right:0;width:55px;height:55px;background:radial-gradient(circle,rgba(201,168,76,.09),transparent 70%);border-radius:0 var(--r) 0 55px}
+.slb{font-size:10px;color:var(--slate);text-transform:uppercase;letter-spacing:.12em;font-weight:600}
+.sv{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:var(--white);margin:5px 0 3px}
+.ss{font-size:11px;color:var(--slate)}.ss.up{color:var(--low)}.ss.warn{color:var(--urgent)}
+
+/* FILTER */
+.fb{display:flex;gap:6px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.fl{font-size:11px;color:var(--slate)}
+.chip{padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--slate);font-size:11.5px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .14s}
+.chip:hover{border-color:var(--gold);color:var(--gold)}.chip.on{background:var(--gold);border-color:var(--gold);color:var(--navy);font-weight:600}
+
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.stit{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--white)}
+
+/* EMPTY */
+.empty{text-align:center;padding:70px 20px;grid-column:1/-1}
+.ei{font-size:52px;opacity:.35;margin-bottom:14px}
+.et{font-family:'Playfair Display',serif;font-size:20px;color:var(--white);margin-bottom:8px}
+.es{font-size:13px;color:var(--slate);line-height:1.6;max-width:360px;margin:0 auto 20px}
+
+/* CASE GRID */
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:13px;margin-bottom:30px}
+.cc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:17px 18px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+.cc:hover{border-color:rgba(201,168,76,.38);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.32)}
+.ustr{position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:var(--r) 0 0 var(--r)}
+.su{background:var(--urgent)}.sm{background:var(--moderate)}.sl{background:var(--low)}
+.ctop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:9px}
+.cid{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--slate);letter-spacing:.06em}
+.ubdg{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.07em}
+.bu{background:rgba(217,95,95,.14);color:var(--urgent)}.bm{background:rgba(212,145,74,.14);color:var(--moderate)}.bl{background:rgba(74,171,124,.14);color:var(--low)}
+.ctit{font-family:'Playfair Display',serif;font-size:14.5px;font-weight:600;color:var(--white);margin-bottom:7px;line-height:1.35}
+.csum{font-size:12px;color:var(--slate);line-height:1.65;margin-bottom:11px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tgs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:11px}
+.tg{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:4px;background:var(--gold-dim);color:var(--gold-lt);letter-spacing:.05em;text-transform:uppercase}
+.crw{display:flex;align-items:center;gap:7px;margin-bottom:10px}
+.crl{font-size:10px;color:var(--slate);width:68px}
+.crt{flex:1;height:3px;background:rgba(122,144,170,.13);border-radius:2px;overflow:hidden}
+.crf{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold-lt))}
+.crp{font-size:10px;color:var(--gold);font-family:'DM Mono',monospace;width:26px;text-align:right}
+.cfoot{display:flex;align-items:center;justify-content:space-between;padding-top:9px;border-top:1px solid rgba(122,144,170,.08)}
+.apl{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--slate)}
+.minav{width:19px;height:19px;background:linear-gradient(135deg,var(--navy-light),var(--gold));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7.5px;font-weight:700;color:var(--white)}
+.cdate{font-size:10.5px;color:var(--slate);font-family:'DM Mono',monospace}
+
+/* UPLOAD */
+.dz{border:2px dashed rgba(201,168,76,.25);border-radius:var(--r);padding:48px 30px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:rgba(201,168,76,.02);margin-bottom:24px}
+.dz:hover,.dz.drag{border-color:var(--gold);background:rgba(201,168,76,.05)}
+.dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dzi{font-size:44px;margin-bottom:12px}.dzt{font-size:15px;font-weight:600;color:var(--white);margin-bottom:5px}.dzs{font-size:12.5px;color:var(--slate)}
+
+/* PIPELINE */
+.pp{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:20px;display:none}
+.pp.vis{display:block}
+.pps{display:flex;margin-bottom:18px}
+.pstep{flex:1;text-align:center;padding:10px 6px;position:relative;opacity:.35;transition:opacity .3s}
+.pstep.done,.pstep.act{opacity:1}
+.pstep::after{content:'→';position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:var(--slate);font-size:12px}
+.pstep:last-child::after{display:none}
+.psi{font-size:20px;margin-bottom:4px}
+.psl{font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--slate);font-weight:600}
+.pstep.act .psl{color:var(--gold)}.pstep.done .psl{color:var(--low)}
+.strm{background:var(--navy);border:1px solid rgba(122,144,170,.12);border-radius:8px;padding:14px 16px;font-family:'DM Mono',monospace;font-size:11.5px;color:var(--cream);line-height:1.75;min-height:80px;white-space:pre-wrap;word-break:break-word;max-height:280px;overflow-y:auto}
+.cur{display:inline-block;width:7px;height:13px;background:var(--gold);vertical-align:middle;margin-left:2px;animation:blink .75s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* QUEUE */
+.qw{margin-bottom:20px;display:none}.qw.vis{display:block}
+.qi{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.qn{font-size:13px;color:var(--cream);flex:1}
+.qst{font-size:11px;color:var(--slate)}.qst.proc{color:var(--gold)}.qst.done{color:var(--low)}.qst.err{color:var(--urgent)}
+/* ── CASE MODAL ─────────────────────────────────────────────────── */
+.ov{position:fixed;inset:0;background:rgba(5,10,20,.88);backdrop-filter:blur(10px);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.ov.open{opacity:1;pointer-events:all}
+.modal{background:#101e2e;border:1px solid rgba(201,168,76,.22);border-radius:16px;width:660px;max-width:96vw;max-height:90vh;overflow-y:auto;padding:0;transform:translateY(10px);transition:transform .22s}
+.modal::-webkit-scrollbar{width:3px}
+.modal::-webkit-scrollbar-thumb{background:var(--navy-light)}
+.ov.open .modal{transform:none}
+
+/* Modal header banner — colour changes per urgency */
+.modal-banner{
+  padding:22px 28px 20px;
+  border-bottom:1px solid var(--border);
+  position:relative;
+  overflow:hidden;
+}
+.modal-banner::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 60%);
+}
+.modal-banner.banner-urgent::before{background:linear-gradient(135deg,rgba(217,95,95,0.1) 0%,transparent 60%)}
+.modal-banner.banner-moderate::before{background:linear-gradient(135deg,rgba(212,145,74,0.1) 0%,transparent 60%)}
+.modal-banner.banner-low::before{background:linear-gradient(135deg,rgba(74,171,124,0.08) 0%,transparent 60%)}
+
+.modal-banner-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1}
+.modal-type-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.modal-type-icon{font-size:18px}
+.modal-type-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--slate)}
+.modal-case-title{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:8px;position:relative;z-index:1}
+.modal-meta-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:relative;z-index:1}
+.modal-id{font-family:'DM Mono',monospace;font-size:10px;color:var(--slate)}
+.modal-sep{color:rgba(122,144,170,.4);font-size:10px}
+.modal-jur{font-size:11px;color:var(--slate)}
+.modal-date{font-size:11px;color:var(--slate);font-family:'DM Mono',monospace}
+.xb{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;cursor:pointer;color:var(--slate);font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .14s}
+.xb:hover{color:var(--cream);border-color:var(--slate)}
+
+/* Modal body */
+.modal-body{padding:22px 28px}
+.msec{margin-bottom:22px}
+.msec-label{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--gold);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.msec-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.2),transparent)}
+
+/* Summary box with accent line that changes colour */
+.summary-box{font-size:13px;color:var(--cream);line-height:1.8;background:rgba(255,255,255,.025);border-radius:8px;padding:14px 16px;border-left:3px solid var(--gold)}
+.summary-box.sum-urgent{border-left-color:var(--urgent)}
+.summary-box.sum-moderate{border-left-color:var(--moderate)}
+.summary-box.sum-low{border-left-color:var(--low)}
+
+/* Detail cards grid */
+.detail-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.detail-card{background:rgba(255,255,255,.02);border:1px solid rgba(122,144,170,.08);border-radius:8px;padding:11px 13px;transition:border-color .15s}
+.detail-card:hover{border-color:rgba(201,168,76,.15)}
+.detail-card.full{grid-column:1/-1}
+.dk{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--slate);font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.dk .dkicon{font-size:11px}
+.dv{font-size:13px;color:var(--cream);font-weight:500;line-height:1.45}
+.dv.mono{font-family:'DM Mono',monospace;font-size:11px}
+.dv.highlight{color:var(--gold-lt)}
+
+/* Complexity bars */
+.cplx-rows{display:flex;flex-direction:column;gap:8px}
+.cplx-row{display:flex;align-items:center;gap:10px}
+.cplx-lbl{font-size:11px;color:var(--slate);width:80px;flex-shrink:0}
+.cplx-trk{flex:1;height:5px;background:rgba(122,144,170,.12);border-radius:3px;overflow:hidden}
+.cplx-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.34,1.1,.64,1)}
+.cplx-pct{font-size:11px;font-family:'DM Mono',monospace;width:32px;text-align:right}
+
+/* Tag row */
+.tag-row{display:flex;flex-wrap:wrap;gap:5px}
+
+/* Assign */
+.asel{width:100%;background:var(--navy-mid);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;appearance:none;margin-top:6px}
+.asel:focus{border-color:var(--gold)}
+
+/* Assigned indicator */
+.assigned-row{display:flex;align-items:center;gap:10px;background:rgba(74,171,124,.07);border:1px solid rgba(74,171,124,.2);border-radius:8px;padding:10px 14px;margin-bottom:10px}
+.assigned-av{width:30px;height:30px;background:linear-gradient(135deg,var(--low),var(--navy-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--white)}
+.assigned-name{font-size:13px;font-weight:500;color:var(--cream)}
+.assigned-label{font-size:10px;color:var(--low);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+
+.modal-footer{display:flex;gap:9px;padding:18px 28px;border-top:1px solid var(--border);align-items:center}
+
+/* RESULT PANEL section label */
+.rp-sec-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--gold);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.rp-sec-lbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.2),transparent)}
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:13px 16px;min-width:240px;z-index:200;display:flex;gap:10px;align-items:flex-start;transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{transform:none;opacity:1}
+.ti{font-size:15px;flex-shrink:0;margin-top:1px}.tt{font-size:13px;font-weight:600;color:var(--white)}.tm{font-size:11px;color:var(--slate);margin-top:2px}
+
+/* Setup banner */
+.setup-banner{display:none;align-items:center;gap:12px;background:rgba(217,95,95,0.08);border:1px solid rgba(217,95,95,0.25);border-radius:var(--r);padding:12px 18px;margin-bottom:18px;font-size:13px}
+.setup-banner a{color:var(--gold);text-decoration:none;font-weight:600}
+.setup-banner a:hover{text-decoration:underline}
+
+/* Read-only notice for non-managers */
+.readonly-notice{background:rgba(122,144,170,.07);border:1px solid rgba(122,144,170,.15);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--slate);display:flex;align-items:center;gap:7px}
+/* ── APPROVAL PANEL (admin) ────────────────────────────────── */
+.approval-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:13px}
+.approval-item-info{flex:1}
+.approval-item-title{font-size:13px;font-weight:600;color:var(--white);margin-bottom:2px}
+.approval-item-meta{font-size:11px;color:var(--slate)}
+.approval-actions{display:flex;gap:7px;flex-shrink:0}
+.aapprove{height:32px;padding:0 14px;border-radius:7px;border:none;background:rgba(74,171,124,.15);border:1px solid rgba(74,171,124,.35);color:var(--low);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.aapprove:hover{background:rgba(74,171,124,.28)}
+.adeny{height:32px;padding:0 14px;border-radius:7px;border:1px solid rgba(217,95,95,.35);background:rgba(217,95,95,.08);color:var(--urgent);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.adeny:hover{background:rgba(217,95,95,.18)}
+.empty-approvals{text-align:center;padding:40px 20px;color:var(--slate);font-size:13px}
+/* ── DROP REQUEST SYSTEM ───────────────────────────────────── */
+.drop-req-btn{width:100%;height:38px;background:rgba(217,95,95,.08);border:1px solid rgba(217,95,95,.3);border-radius:8px;color:var(--urgent);font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px}
+.drop-req-btn:hover{background:rgba(217,95,95,.15)}
+.drop-req-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.drop-pending-notice{display:flex;align-items:center;gap:7px;background:rgba(212,145,74,.08);border:1px solid rgba(212,145,74,.25);border-radius:8px;padding:9px 13px;font-size:12px;color:var(--moderate);margin-top:6px}
+/* ── EDIT FIELDS IN MODAL ──────────────────────────────────── */
+.edit-field{width:100%;background:var(--navy-mid);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;resize:vertical;min-height:60px;transition:border-color .2s}
+.edit-field:focus{border-color:var(--gold)}
+.edit-field.single{min-height:unset;height:38px;resize:none}
+.edit-mode-bar{display:none;align-items:center;gap:8px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--gold);font-weight:600}
+.edit-mode-bar.on{display:flex}
+/* ── PICK UP CASE (Lawyer self-assign) ─────────────────────── */
+.pickup-btn{width:100%;height:40px;background:rgba(74,171,124,.1);border:1px solid rgba(74,171,124,.35);border-radius:8px;color:var(--low);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:8px}
+.pickup-btn:hover{background:rgba(74,171,124,.18);transform:translateY(-1px)}
+/* ── URGENT FLAG BADGE ─────────────────────────────────────── */
+.urgent-flag-banner{display:flex;align-items:center;gap:8px;background:rgba(217,95,95,0.1);border:1px solid rgba(217,95,95,0.35);border-radius:8px;padding:9px 14px;margin-bottom:10px;font-size:12px;color:var(--urgent);font-weight:600}
+.cc.flagged-urgent{border-color:rgba(217,95,95,.55)!important;box-shadow:0 0 0 1px rgba(217,95,95,.2),0 4px 18px rgba(217,95,95,.12)!important}
+.cc.flagged-urgent .ustr{background:var(--urgent)!important}
+.urgent-pin{position:absolute;top:10px;right:12px;font-size:11px;background:rgba(217,95,95,.15);border:1px solid rgba(217,95,95,.35);color:var(--urgent);border-radius:4px;padding:1px 6px;font-weight:700;letter-spacing:.05em}
+
+/* ── CONFIRM DIALOG ──────────────────────────────────────────── */
+.confirm-ov{position:fixed;inset:0;background:rgba(5,10,20,.85);backdrop-filter:blur(8px);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.confirm-ov.open{opacity:1;pointer-events:all}
+.confirm-card{background:#101e2e;border:1px solid rgba(201,168,76,.25);border-radius:14px;width:420px;max-width:92vw;padding:28px 28px 22px;transform:translateY(10px);transition:transform .22s}
+.confirm-ov.open .confirm-card{transform:none}
+.confirm-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--white);margin-bottom:10px}
+.confirm-msg{font-size:13px;color:var(--slate);line-height:1.65;margin-bottom:22px}
+.confirm-actions{display:flex;gap:9px;justify-content:flex-end}
+
+</style>
+
+      
+</head>
+<body>
+
+<!-- ══════════════════════ LOGIN SCREEN ══════════════════════ -->
+<div id="login-screen">
+  <div class="login-bg"></div>
+  <div class="login-grid"></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-text">Jurist<span>Flow</span></div>
+      <div class="login-logo-sub">AI Legal Repository</div>
+      <div class="login-divider"></div>
+    </div>
+    <div class="login-welcome">Welcome back</div>
+    <div class="login-sub">Sign in to access the case repository</div>
+
+    <div class="login-accounts">
+      <div class="la-title">Demo accounts — click to fill</div>
+      <div class="la-item" onclick="fillLogin('admin@juristflow.au','admin123')">
+        <div class="la-av" style="background:linear-gradient(135deg,#c9a84c,#1f3050)">MJ</div>
+        <div class="la-info"><div class="la-name">M. Johnson</div><div class="la-role">Senior Partner · Full Access</div></div>
+        <div class="la-pw">admin123</div>
+      </div>
+      <div class="la-item" onclick="fillLogin('s.chen@juristflow.au','lawyer123')">
+        <div class="la-av" style="background:linear-gradient(135deg,#4aab7c,#1f3050)">SC</div>
+        <div class="la-info"><div class="la-name">S. Chen</div><div class="la-role">Lawyer · Family Law</div></div>
+        <div class="la-pw">lawyer123</div>
+      </div>
+      <div class="la-item" onclick="fillLogin('d.okafor@juristflow.au','lawyer123')">
+        <div class="la-av" style="background:linear-gradient(135deg,#7a90aa,#1f3050)">DO</div>
+        <div class="la-info"><div class="la-name">D. Okafor</div><div class="la-role">Lawyer · Criminal Defence</div></div>
+        <div class="la-pw">lawyer123</div>
+      </div>
+    </div>
+
+    <div class="login-error" id="login-err"></div>
+
+    <div class="field-group">
+      <label class="field-label">Email Address</label>
+      <input class="field-input" type="email" id="li-email" placeholder="you@juristflow.au" autocomplete="email">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Password</label>
+      <input class="field-input" type="password" id="li-pw" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ APP ══════════════════════ -->
+<div id="app">
+  <nav class="sidebar">
+    <div class="logo"><div class="logo-mark">Jurist<span>Flow</span></div><div class="logo-tag">AI Legal Repository</div></div>
+    <div class="nav">
+      <div class="ngl">Workspace</div>
+      <div class="ni on" data-page="repository" onclick="navTo(this,'repository')"><span class="ic">📁</span>Case Repository<span class="nc" id="nr">0</span></div>
+      <div class="ni" id="nav-upload" data-page="upload" onclick="navTo(this,'upload')"><span class="ic">⬆</span>Upload Document</div>
+      <div class="ngl">Monitor</div>
+      <div class="ni" data-page="urgent" onclick="navTo(this,'urgent')"><span class="ic">⚠</span>Urgent Cases<span class="nc red" id="nu">0</span></div>
+      <div class="ni" data-page="unassigned" onclick="navTo(this,'unassigned')"><span class="ic">👤</span>Unassigned<span class="nc" id="na">0</span></div>
+      <div class="ni" id="nav-approvals" data-page="approvals" onclick="navTo(this,'approvals')" style="display:none"><span class="ic">🔔</span>Drop Requests<span class="nc red" id="nap">0</span></div>
+    </div>
+    <div class="sfoot">
+      <div class="av" id="user-av" style="background:linear-gradient(135deg,var(--gold),var(--navy-light))"></div>
+      <div><div style="font-size:12.5px;font-weight:500" id="user-name">—</div><div style="font-size:10px;color:var(--slate)" id="user-role">—</div></div>
+      <button class="logout-btn" onclick="doLogout()" title="Sign out">⏻</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="ptitle" id="ptitle">Case Repository</div>
+      <div class="aidot" id="ai-status-dot"><div class="pulse"></div><span id="ai-status-text">Gemini AI Active</span></div>
+      <div class="srch"><span style="font-size:13px;color:var(--slate)">🔍</span><input type="text" id="si" placeholder="Search cases…" oninput="renderCases()"></div>
+      <span class="role-badge" id="role-badge">Partner</span>
+      <button class="btn bgold" id="upload-btn" onclick="navTo(document.querySelector('[data-page=upload]'),'upload')">+ Upload Case</button>
+    </div>
+
+    <div class="content">
+      <!-- SETUP BANNER — shown when worker URL not configured -->
+      <div class="setup-banner" id="setup-banner" style="display:none">
+        <span style="font-size:18px">⚠️</span>
+        <div style="flex:1">
+          <strong style="color:var(--white)">AI Worker not configured.</strong>
+          Document analysis will use fallback classification only.
+          <span style="color:var(--slate)"> — Deploy the worker and paste your URL into the HTML to enable full AI analysis.</span>
+        </div>
+        <a href="https://github.com" target="_blank" style="white-space:nowrap">View Setup Guide →</a>
+      </div>
+
+      <!-- REPOSITORY -->
+      <div class="page on" id="page-repository">
+        <div class="srow">
+          <div class="sc"><div class="slb">Total Cases</div><div class="sv" id="st">0</div><div class="ss">In repository</div></div>
+          <div class="sc"><div class="slb">Urgent</div><div class="sv" id="su2">0</div><div class="ss warn" id="sus">No urgent cases</div></div>
+          <div class="sc"><div class="slb">Unassigned</div><div class="sv" id="sun">0</div><div class="ss" id="suns">All assigned</div></div>
+          <div class="sc"><div class="slb">Docs Processed</div><div class="sv" id="sd">0</div><div class="ss up">Via Gemini AI</div></div>
+        </div>
+        <div class="fb">
+          <span class="fl">Filter:</span>
+          <button class="chip on" onclick="setF(this,'all')">All</button>
+          <button class="chip" onclick="setF(this,'urgent')">🔴 Urgent</button>
+          <button class="chip" onclick="setF(this,'family')">Family</button>
+          <button class="chip" onclick="setF(this,'criminal')">Criminal</button>
+          <button class="chip" onclick="setF(this,'civil')">Civil</button>
+          <button class="chip" onclick="setF(this,'corporate')">Corporate</button>
+        </div>
+        <div class="sh"><div class="stit">All Cases</div></div>
+        <div class="cg" id="gr"></div>
+      </div>
+
+      <!-- UPLOAD -->
+      <div class="page" id="page-upload">
+
+        <div class="dz" id="dz" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="dropFiles(event)">
+          <input type="file" id="fi" accept=".pdf,.txt,.doc,.docx,.md" multiple onchange="handleFiles(this.files)">
+          <div class="dzi">📤</div>
+          <div class="dzt">Drop legal documents here or click to browse</div>
+          <div class="dzs">PDF, TXT, DOC, DOCX, MD — Gemini AI reads, analyses, and classifies each document automatically</div>
+        </div>
+
+        <!-- Two-column workspace shown while/after processing -->
+        <div id="analysis-workspace" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;align-items:start">
+
+            <!-- LEFT: pipeline + log + queue -->
+            <div>
+              <div class="pp vis" id="pp" style="margin-bottom:14px">
+                <div class="pps">
+                  <div class="pstep" id="ps1"><div class="psi">📥</div><div class="psl">Input</div></div>
+                  <div class="pstep" id="ps2"><div class="psi">🧠</div><div class="psl">AI Engine</div></div>
+                  <div class="pstep" id="ps3"><div class="psi">🏷</div><div class="psl">Filter Layer</div></div>
+                  <div class="pstep" id="ps4"><div class="psi">✅</div><div class="psl">Repository</div></div>
+                </div>
+                <div class="strm" id="strm"></div>
+              </div>
+              <div class="qw vis" id="qw">
+                <div class="sh" style="margin-bottom:10px"><div class="stit" style="font-size:13px">Processing Queue</div></div>
+                <div id="ql"></div>
+              </div>
+            </div>
+
+            <!-- RIGHT: live AI results panel -->
+            <div id="result-panel">
+              <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden">
+
+                <!-- Result banner header -->
+                <div id="rp-header" style="padding:16px 18px 14px;border-bottom:1px solid var(--border);background:rgba(201,168,76,0.03)">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span id="rp-type-icon" style="font-size:16px">🧠</span>
+                      <span id="rp-type-label" style="font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.08em;text-transform:uppercase;background:var(--gold-dim);color:var(--slate)">Analysing…</span>
+                    </div>
+                    <span id="rp-urgency-badge" class="ubdg bl" style="opacity:0.3">—</span>
+                  </div>
+                  <div id="rp-title" style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:4px">Waiting for AI analysis…</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <span id="rp-id"  style="font-family:'DM Mono',monospace;font-size:10px;color:var(--slate)"></span>
+                    <span id="rp-jur-sep" style="color:rgba(122,144,170,.4);font-size:10px;display:none">·</span>
+                    <span id="rp-jur" style="font-size:11px;color:var(--slate)"></span>
+                  </div>
+                </div>
+
+                <!-- Scrollable body -->
+                <div style="padding:16px 18px;overflow-y:auto;max-height:560px">
+
+                  <!-- Scanning animation (shown while waiting) -->
+                  <div id="rp-scanning" style="text-align:center;padding:36px 20px">
+                    <div style="font-size:36px;margin-bottom:12px">🧠</div>
+                    <div style="font-family:'Playfair Display',serif;font-size:15px;color:var(--white);margin-bottom:6px">Analysing document…</div>
+                    <div style="font-size:12px;color:var(--slate);margin-bottom:16px">Gemini AI is extracting case information</div>
+                    <div style="display:flex;justify-content:center;gap:6px">
+                      <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;animation:pulse 1.2s ease-in-out infinite"></div>
+                      <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;animation:pulse 1.2s ease-in-out .3s infinite"></div>
+                      <div style="width:6px;height:6px;background:var(--gold);border-radius:50%;animation:pulse 1.2s ease-in-out .6s infinite"></div>
+                    </div>
+                  </div>
+
+                  <!-- Results (shown after scan) -->
+                  <div id="rp-results" style="display:none">
+
+                    <div style="margin-bottom:16px">
+                      <div class="rp-sec-lbl">📋 Executive Summary</div>
+                      <div id="rp-summary" style="font-size:13px;color:var(--cream);line-height:1.8;background:rgba(255,255,255,.025);border-radius:8px;padding:13px 15px;border-left:3px solid var(--gold)"></div>
+                    </div>
+
+                    <div style="margin-bottom:16px">
+                      <div class="rp-sec-lbl">⚖️ Case Details</div>
+                      <div id="rp-details" style="display:grid;grid-template-columns:1fr 1fr;gap:7px"></div>
+                    </div>
+
+                    <div style="margin-bottom:16px">
+                      <div class="rp-sec-lbl">⚠️ Risk Factors</div>
+                      <div id="rp-risk" style="font-size:12.5px;color:var(--cream);line-height:1.7;background:rgba(217,95,95,.05);border:1px solid rgba(217,95,95,.15);border-radius:8px;padding:11px 13px"></div>
+                    </div>
+
+                    <div style="margin-bottom:16px">
+                      <div class="rp-sec-lbl">➡️ Recommended Next Steps</div>
+                      <div id="rp-next" style="font-size:12.5px;color:var(--cream);line-height:1.7;background:rgba(74,171,124,.05);border:1px solid rgba(74,171,124,.15);border-radius:8px;padding:11px 13px"></div>
+                    </div>
+
+                    <div style="margin-bottom:16px">
+                      <div class="rp-sec-lbl">🏷 Classification Tags</div>
+                      <div id="rp-tags" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+                    </div>
+
+                    <div style="margin-bottom:16px">
+                      <div class="rp-sec-lbl">📊 Complexity Analysis</div>
+                      <div id="rp-cplx" class="cplx-rows"></div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border)">
+                      <button class="btn bgold" style="flex:1" id="rp-view-btn">View in Repository →</button>
+                      <button class="btn bgh" onclick="resetUpload()">+ Upload Another</button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="sesswrap" style="display:none">
+          <div class="sh"><div class="stit">Added This Session</div></div>
+          <div class="cg" id="grs"></div>
+        </div>
+
+      </div>
+
+      <!-- URGENT -->
+      <div class="page" id="page-urgent"><div class="sh"><div class="stit">Urgent Cases</div></div><div class="cg" id="gu"></div></div>
+
+      <!-- UNASSIGNED -->
+      <!-- UNASSIGNED -->
+      <div class="page" id="page-unassigned"><div class="sh"><div class="stit">Unassigned Cases</div></div><div class="cg" id="gan"></div></div>
+
+      <!-- DROP REQUESTS / APPROVALS (admin only) -->
+      <div class="page" id="page-approvals">
+        <div class="sh"><div class="stit">Drop Case Requests</div></div>
+        <div id="approvals-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ CASE MODAL ══════════════════════ -->
+<div class="ov" id="ov" onclick="if(event.target===this)closeM()">
+  <div class="modal" id="the-modal">
+
+    <!-- Dynamic banner -->
+    <div class="modal-banner" id="m-banner">
+      <div class="modal-banner-top">
+        <div style="flex:1">
+          <div class="modal-type-row">
+            <span class="modal-type-icon" id="m-type-icon"></span>
+            <span class="modal-type-label" id="m-type-label"></span>
+            <span class="ubdg" id="m-badge" style="margin-left:4px"></span>
+          </div>
+          <div class="modal-case-title" id="m-title"></div>
+          <div class="modal-meta-row">
+            <span class="modal-id" id="m-id"></span>
+            <span class="modal-sep">·</span>
+            <span class="modal-jur" id="m-jur"></span>
+            <span class="modal-sep">·</span>
+            <span class="modal-date" id="m-date"></span>
+          </div>
+        </div>
+        <button class="xb" onclick="closeM()" style="margin-left:16px;flex-shrink:0">✕</button>
+      </div>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Edit mode notice -->
+      <div class="edit-mode-bar" id="m-edit-bar">✏️ Edit mode — changes apply immediately on save</div>
+
+      <!-- AI Summary -->
+      <div class="msec">
+        <div class="msec-label">🤖 AI Generated Summary</div>
+        <!-- View mode -->
+        <div class="summary-box" id="m-summary"></div>
+        <!-- Edit mode -->
+        <textarea class="edit-field" id="m-summary-edit" style="display:none" rows="4"></textarea>
+      </div>
+
+      <!-- Case Details — dynamic cards -->
+      <div class="msec">
+        <div class="msec-label">📋 Case Details</div>
+        <div class="detail-cards" id="m-details"></div>
+        <!-- Edit fields (shown in edit mode) -->
+        <div id="m-edit-fields" style="display:none;margin-top:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+            <div><div class="dk" style="margin-bottom:5px">⚖️ Legal Issue</div><textarea class="edit-field" id="ef-legalIssue" rows="2"></textarea></div>
+            <div><div class="dk" style="margin-bottom:5px">👥 Parties</div><textarea class="edit-field" id="ef-parties" rows="2"></textarea></div>
+            <div><div class="dk" style="margin-bottom:5px">📅 Key Dates</div><input class="edit-field single" id="ef-keyDates" type="text"></div>
+            <div><div class="dk" style="margin-bottom:5px">🎓 Expertise</div><input class="edit-field single" id="ef-expertise" type="text"></div>
+            <div style="grid-column:1/-1"><div class="dk" style="margin-bottom:5px">⚠️ Risk Factors</div><textarea class="edit-field" id="ef-riskFactors" rows="2"></textarea></div>
+            <div style="grid-column:1/-1"><div class="dk" style="margin-bottom:5px">➡️ Next Steps</div><textarea class="edit-field" id="ef-nextSteps" rows="2"></textarea></div>
+            <div><div class="dk" style="margin-bottom:5px">💰 Est. Value</div><input class="edit-field single" id="ef-estimatedValue" type="text"></div>
+            <div><div class="dk" style="margin-bottom:5px">📊 Urgency</div>
+              <select class="edit-field single" id="ef-urgency" style="height:38px;appearance:none;cursor:pointer">
+                <option value="low">🟢 Low</option>
+                <option value="moderate">🟡 Moderate</option>
+                <option value="urgent">🔴 Urgent</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="msec" id="m-tags-sec">
+        <div class="msec-label">🏷 Classification Tags</div>
+        <div class="tag-row" id="m-tags"></div>
+      </div>
+
+      <!-- Complexity -->
+      <div class="msec">
+        <div class="msec-label">📊 Complexity Analysis</div>
+        <div class="cplx-rows" id="m-cplx"></div>
+      </div>
+
+      <!-- Assign -->
+      <div class="msec" id="m-assign-sec">
+        <div class="msec-label">👤 Case Assignment</div>
+
+        <!-- Urgent flag banner (shown when case is admin-flagged urgent) -->
+        <div class="urgent-flag-banner" id="m-urgent-flag" style="display:none">🚨 Admin has flagged this case as URGENT — immediate attention required</div>
+
+        <div id="m-assigned-indicator"></div>
+
+        <!-- Admin: assignment select -->
+        <select class="asel" id="masel" style="display:none"><option value="">— Select a lawyer —</option></select>
+
+        <!-- Lawyer: pick up unassigned case -->
+        <button class="pickup-btn" id="m-pickup-btn" style="display:none" onclick="pickUpCase()">✋ Pick Up This Case</button>
+
+        <!-- Lawyer: request to drop case -->
+        <button class="drop-req-btn" id="m-drop-btn" style="display:none" onclick="requestDrop()">🔓 Request to Drop Case</button>
+        <div class="drop-pending-notice" id="m-drop-pending" style="display:none">⏳ Drop request pending admin approval</div>
+
+        <div class="readonly-notice" id="m-readonly" style="display:none;margin-top:8px">
+          🔒 View-only access. Contact a senior partner to reassign this case.
+        </div>
+      </div>
+
+      <!-- Admin: Flag as Urgent section -->
+      <div class="msec" id="m-flag-sec" style="display:none">
+        <div class="msec-label">🚨 Admin Controls</div>
+        <button class="btn bsm" id="m-flag-btn" onclick="toggleUrgentFlag()" style="border:1px solid rgba(217,95,95,.4);color:var(--urgent);background:rgba(217,95,95,.06);width:100%;height:36px;justify-content:center"></button>
+      </div>
+
+    </div>
+
+    <div class="modal-footer" id="modal-footer-wrap" style="padding:0">
+      <!-- Admin footer -->
+      <div id="mf-admin" style="width:100%;gap:9px;align-items:center;padding:18px 28px;border-top:1px solid var(--border);display:none">
+        <button class="btn bgold" id="m-save-btn" onclick="confirmAssign()">✓ Save Assignment</button>
+        <button class="btn bgh" id="m-edit-btn" onclick="toggleEditMode()">✏️ Edit Case</button>
+        <button class="btn bgold" id="m-edit-save-btn" onclick="saveEdits()" style="display:none">💾 Save Edits</button>
+        <button class="btn bgh" onclick="closeM()">Close</button>
+        <button class="btn bdng bsm" id="m-del-btn" style="margin-left:auto" onclick="delCase()">🗑 Delete</button>
+      </div>
+      <!-- Lawyer footer -->
+      <div id="mf-lawyer" style="width:100%;gap:9px;align-items:center;padding:18px 28px;border-top:1px solid var(--border);display:none">
+        <button class="btn bgh" id="m-lawyer-edit-btn" onclick="toggleEditMode()">✏️ Edit Case</button>
+        <button class="btn bgold" id="m-lawyer-edit-save-btn" onclick="saveEdits()" style="display:none">💾 Save Edits</button>
+        <button class="btn bgh" onclick="closeM()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-ov" id="confirm-ov">
+  <div class="confirm-card">
+    <div class="confirm-title" id="confirm-title">Confirm</div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-actions">
+      <button class="btn bgh" onclick="confirmCancel()">Cancel</button>
+      <button class="btn bdng" id="confirm-ok-btn" onclick="confirmOk()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><div class="ti" id="ticon"></div><div><div class="tt" id="ttitle"></div><div class="tm" id="tmsg"></div></div></div>
+
+<script>
+// ═══════════════ AUTH ═══════════════
+const USERS = [
+  {email:'admin@juristflow.au',   pw:'admin123',  name:'M. Johnson', role:'Senior Partner', initials:'MJ', color:'linear-gradient(135deg,#c9a84c,#1f3050)', canEdit:true,  canUpload:true,  isAdmin:true,  lawyerName:null},
+  {email:'s.chen@juristflow.au',  pw:'lawyer123', name:'S. Chen',    role:'Lawyer · Family Law',       initials:'SC', color:'linear-gradient(135deg,#4aab7c,#1f3050)', canEdit:false, canUpload:false, isAdmin:false, lawyerName:'Sarah Chen'},
+  {email:'d.okafor@juristflow.au',pw:'lawyer123', name:'D. Okafor',  role:'Lawyer · Criminal Defence', initials:'DO', color:'linear-gradient(135deg,#7a90aa,#1f3050)', canEdit:false, canUpload:false, isAdmin:false, lawyerName:'David Okafor'},
+];
+
+let currentUser = null;
+// Worker URL — set after deployment
+const WORKER_URL = 'https://juristflowprototype1.tyeaidan761.workers.dev';
+function showLoginError(msg) {
+  const el = document.getElementById('login-err');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideLoginError() {
+  const el = document.getElementById('login-err');
+  el.textContent = '';
+  el.style.display = 'none';
+}
+function fillLogin(email, pw) {
+  document.getElementById('li-email').value = email;
+  document.getElementById('li-pw').value = pw;
+  hideLoginError();
+}
+
+function doLogin() {
+  const email = document.getElementById('li-email').value.trim().toLowerCase();
+  const pw    = document.getElementById('li-pw').value;
+
+  const user = USERS.find(u => u.email === email && u.pw === pw);
+  if (!user) {
+    showLoginError('Incorrect email or password. Please try again.');
+    document.getElementById('li-pw').value = '';
+    return;
+  }
+
+  hideLoginError();
+  currentUser = user;
+
+  // Update sidebar user info
+  const av = document.getElementById('user-av');
+  av.textContent = user.initials;
+  av.style.background = user.color;
+  document.getElementById('user-name').textContent = user.name;
+  document.getElementById('user-role').textContent = user.role;
+  document.getElementById('role-badge').textContent = user.canEdit ? 'Partner' : 'Lawyer';
+
+  // Show/hide upload based on permissions
+  document.getElementById('nav-upload').style.display = user.canUpload ? '' : 'none';
+  document.getElementById('upload-btn').style.display = user.canUpload ? '' : 'none';
+  // Show approval nav for admin
+  document.getElementById('nav-approvals').style.display = user.isAdmin ? '' : 'none';
+
+  // Check if Worker URL is configured
+  const workerReady = WORKER_URL && WORKER_URL !== 'PASTE_YOUR_WORKER_URL_HERE';
+  const statusDot  = document.getElementById('ai-status-dot');
+  const statusText = document.getElementById('ai-status-text');
+  if (!workerReady) {
+    statusDot.style.opacity = '0.5';
+    statusText.textContent = 'AI Not Configured';
+    statusText.style.color = 'var(--urgent)';
+    document.getElementById('setup-banner').style.display = 'flex';
+  } else {
+    statusText.textContent = 'Gemini AI Active';
+    document.getElementById('setup-banner').style.display = 'none';
+  }
+
+  // Transition
+  const ls = document.getElementById('login-screen');
+  ls.style.transition = 'opacity .4s ease';
+  ls.style.opacity = '0';
+  setTimeout(() => {
+    ls.style.display = 'none';
+    document.getElementById('app').classList.add('on');
+    renderCases();
+  }, 400);
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('app').classList.remove('on');
+  const ls = document.getElementById('login-screen');
+  ls.style.display = 'flex';
+  ls.style.opacity = '0';
+  requestAnimationFrame(() => { ls.style.transition = 'opacity .3s'; ls.style.opacity = '1'; });
+  document.getElementById('li-pw').value = '';
+}
+
+// ═══════════════ STATE ═══════════════
+let CASES = [];
+let DROP_REQUESTS = []; // {id, caseId, caseTitle, lawyerName, ts}
+let docs = 0;
+let filt = 'all';
+let activeId = null;
+let sessIds = [];
+let queue = [];
+let busy = false;
+let editMode = false;
+
+try {
+  CASES = JSON.parse(localStorage.getItem('jf3') || '[]');
+  docs = parseInt(localStorage.getItem('jfd3') || '0');
+  DROP_REQUESTS = JSON.parse(localStorage.getItem('jf_drop') || '[]');
+} catch(e) {}
+function save() {
+  localStorage.setItem('jf3', JSON.stringify(CASES));
+  localStorage.setItem('jfd3', String(docs));
+  localStorage.setItem('jf_drop', JSON.stringify(DROP_REQUESTS));
+}
+
+// ═══════════════ NAVIGATION ═══════════════
+function navTo(el, page) {
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.getElementById('page-' + page).classList.add('on');
+  const titles = {repository:'Case Repository', upload:'Upload Document', urgent:'Urgent Cases', unassigned:'Unassigned Cases', approvals:'Drop Case Requests'};
+  document.getElementById('ptitle').textContent = titles[page] || page;
+  if (page === 'urgent')     renderGrid('gu',  CASES.filter(c => c.urgency === 'urgent'));
+  if (page === 'unassigned') renderGrid('gan', CASES.filter(c => !c.assigned));
+  if (page === 'repository') renderCases();
+  if (page === 'approvals')  renderApprovals();
+}
+
+// ═══════════════ FILTER ═══════════════
+function setF(btn, f) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  btn.classList.add('on'); filt = f; renderCases();
+}
+function getFiltered() {
+  const q = (document.getElementById('si')?.value || '').toLowerCase();
+  return CASES.filter(c => {
+    const mf = filt === 'all' || c.type === filt || (filt === 'urgent' && c.urgency === 'urgent');
+    const mq = !q || c.title.toLowerCase().includes(q) || c.id.toLowerCase().includes(q)
+      || (c.tags||[]).some(t => t.toLowerCase().includes(q)) || (c.summary||'').toLowerCase().includes(q);
+    return mf && mq;
+  });
+}
+
+// ═══════════════ RENDER ═══════════════
+function renderCases() { renderGrid('gr', getFiltered()); updateStats(); }
+
+function renderGrid(id, cases) {
+  const el = document.getElementById(id); if (!el) return;
+  if (!cases.length) {
+    el.innerHTML = `<div class="empty"><div class="ei">📂</div><div class="et">No cases here yet</div><div class="es">Upload any legal document — Gemini AI will read it, extract parties, dates, legal issues, and add it to the repository automatically.</div>${currentUser?.canUpload ? `<button class="btn bgold" onclick="navTo(document.querySelector('[data-page=upload]'),'upload')">⬆ Upload First Case</button>` : ''}</div>`;
+    return;
+  }
+  el.innerHTML = cases.map(caseCard).join('');
+}
+
+function caseCard(c) {
+  const bc = {urgent:'bu', moderate:'bm', low:'bl'}[c.urgency] || 'bl';
+  const bl = {urgent:'🔴 Urgent', moderate:'🟡 Moderate', low:'🟢 Low'}[c.urgency] || '🟢 Low';
+  const sc = {urgent:'su', moderate:'sm', low:'sl'}[c.urgency] || 'sl';
+  const tags = (c.tags||[]).map(t => `<span class="tg">${t}</span>`).join('');
+  const assignEl = c.assigned
+    ? `<div class="minav">${c.assigned.slice(0,2).toUpperCase()}</div>${c.assigned.split('–')[0].trim()}`
+    : `<span style="color:var(--urgent);font-size:11px">⚠ Unassigned</span>`;
+  // FIX: urgent-pin sits absolute top-right; ubdg in ctop also aligns right.
+  // When adminFlagged both render in the same corner — hide ubdg to avoid overlap.
+  const urgentPin = c.adminFlagged ? `<div class="urgent-pin">🚨 URGENT</div>` : '';
+  const flaggedClass = c.adminFlagged ? ' flagged-urgent' : '';
+  const badge = c.adminFlagged ? '' : `<span class="ubdg ${bc}">${bl}</span>`;
+  return `<div class="cc${flaggedClass}" onclick="openCase('${c.id}')">
+    <div class="ustr ${sc}"></div>
+    ${urgentPin}
+    <div class="ctop"><div class="cid">${c.id}</div>${badge}</div>
+    <div class="ctit">${c.title}</div>
+    <div class="csum">${c.summary||''}</div>
+    <div class="tgs">${tags}</div>
+    <div class="crw"><div class="crl">Complexity</div><div class="crt"><div class="crf" style="width:${c.complexity||50}%"></div></div><div class="crp">${c.complexity||50}%</div></div>
+    <div class="cfoot"><div class="apl">${assignEl}</div><div class="cdate">${c.date||''}</div></div>
+  </div>`;
+}
+
+function updateStats() {
+  const urg = CASES.filter(c => c.urgency === 'urgent').length;
+  const una = CASES.filter(c => !c.assigned).length;
+  document.getElementById('st').textContent  = CASES.length;
+  document.getElementById('su2').textContent = urg;
+  document.getElementById('sus').textContent = urg ? '⚠ Needs attention' : 'No urgent cases';
+  document.getElementById('sun').textContent = una;
+  document.getElementById('suns').textContent = una ? `${una} need assignment` : 'All assigned';
+  document.getElementById('sd').textContent  = docs;
+  document.getElementById('nr').textContent  = CASES.length;
+  document.getElementById('nu').textContent  = urg;
+  document.getElementById('na').textContent  = una;
+  const pendingDrops = DROP_REQUESTS.length;
+  document.getElementById('nap').textContent = pendingDrops;
+  document.getElementById('nap').style.display = pendingDrops ? '' : 'none';
+}
+
+// ═══════════════ UPLOAD ═══════════════
+function dropFiles(e) { e.preventDefault(); document.getElementById('dz').classList.remove('drag'); handleFiles(e.dataTransfer.files); }
+function handleFiles(files) {
+  Array.from(files).forEach(f => {
+    queue.push(f);
+    document.getElementById('qw').classList.add('vis');
+    const d = document.createElement('div'); d.className = 'qi'; d.id = 'qi' + f.name.replace(/\W/g,'_');
+    d.innerHTML = `<span style="font-size:18px">📄</span><span class="qn">${f.name}</span><span class="qst" id="qs${f.name.replace(/\W/g,'_')}">Queued</span>`;
+    document.getElementById('ql').appendChild(d);
+  });
+  if (!busy) drain();
+}
+async function drain() {
+  busy = true;
+  while (queue.length > 0) { const f = queue.shift(); await processFile(f); }
+  busy = false;
+}
+
+async function processFile(file) {
+  const sid = 'qs' + file.name.replace(/\W/g,'_');
+  const sel = document.getElementById(sid);
+  if (sel) { sel.textContent = 'Processing…'; sel.className = 'qst proc'; }
+
+  // Show workspace, hide drop zone
+  document.getElementById('dz').style.display = 'none';
+  document.getElementById('analysis-workspace').style.display = 'block';
+
+  // Show result panel, reset to scanning state
+  document.getElementById('result-panel').style.display = 'block';
+  document.getElementById('rp-scanning').style.display = 'block';
+  document.getElementById('rp-results').style.display = 'none';
+  document.getElementById('rp-title').textContent = 'Analysing: ' + file.name;
+  document.getElementById('rp-id').textContent = '';
+  document.getElementById('rp-jur').textContent = '';
+  document.getElementById('rp-jur-sep').style.display = 'none';
+  document.getElementById('rp-type-icon').textContent = '🧠';
+  document.getElementById('rp-type-label').textContent = 'Analysing…';
+  document.getElementById('rp-type-label').style.cssText = 'font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.08em;text-transform:uppercase;background:var(--gold-dim);color:var(--slate)';
+  document.getElementById('rp-urgency-badge').textContent = '—';
+  document.getElementById('rp-urgency-badge').className = 'ubdg bl';
+  document.getElementById('rp-urgency-badge').style.opacity = '0.3';
+  document.getElementById('rp-header').style.background = 'rgba(201,168,76,0.03)';
+
+  const strm = document.getElementById('strm');
+  strm.textContent = '';
+  [1,2,3,4].forEach(n => { const e = document.getElementById('ps'+n); e.classList.remove('act','done'); });
+
+  actStep(1); app(strm, `📥 File received: ${file.name}\n   Size: ${(file.size/1024).toFixed(1)} KB\n`); await sl(400);
+
+  let txt = '';
+  try {
+    const isPDF = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+    if (isPDF) {
+      app(strm, `   Extracting text from PDF using PDF.js…\n`);
+    }
+    txt = await readTxt(file);
+    const wordCount = txt.trim().split(/\s+/).filter(Boolean).length;
+    app(strm, `   Extracted ${wordCount.toLocaleString()} words from document\n`);
+    txt = txt.slice(0, 8000);
+  } catch(e) {
+    app(strm, `   ⚠ File read warning: ${e.message}\n`);
+    txt = '';
+  }
+
+  doneStep(1); actStep(2); app(strm, `\n🧠 Sending to Gemini AI for analysis…\n`);
+  const cur = addCur(strm);
+  let res = null;
+
+  try {
+    const workerRes = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: file.name, content: txt })
+    });
+    let workerData;
+    try { workerData = await workerRes.json(); }
+    catch(e) { throw new Error(`Worker returned non-JSON (HTTP ${workerRes.status})`); }
+    if (!workerData.success) throw new Error(workerData.error || 'Worker returned failure');
+    res = workerData.result;
+    if (!res || typeof res !== 'object') throw new Error('Worker result was empty or malformed');
+  } catch(e) {
+    cur.remove();
+    app(strm, `\n⚠ AI error: ${e.message}\n   Applying fallback classification…\n`);
+    res = fallback(file.name, txt);
+  }
+
+  doneStep(2); actStep(3);
+  app(strm, `\n🏷  Classification:\n   Type: ${res.type} | Urgency: ${res.urgency} | Complexity: ${res.complexity}%\n   Tags: ${(res.tags||[]).join(', ')}\n`);
+  await sl(300);
+
+  doneStep(3); actStep(4);
+  docs++;
+  const id = `JF-${new Date().getFullYear()}-${String(CASES.length+1).padStart(3,'0')}`;
+  const nc = {
+    id, title:res.title||file.name, type:res.type||'civil', urgency:res.urgency||'low',
+    jurisdiction:res.jurisdiction||'TBD', expertise:res.expertise||'General Practice',
+    complexity:Math.max(1,Math.min(100,parseInt(res.complexity)||50)),
+    tags:res.tags||[], summary:res.summary||'', parties:res.parties||'',
+    keyDates:res.keyDates||'', legalIssue:res.legalIssue||'',
+    riskFactors:res.riskFactors||'', nextSteps:res.nextSteps||'',
+    estimatedValue:res.estimatedValue||'Not specified',
+    date:new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}),
+    assigned:null, fileName:file.name
+  };
+  CASES.unshift(nc); sessIds.unshift(id); save();
+  app(strm, `\n✅ Case ${id} added to repository.\n`);
+  doneStep(4);
+
+  if (sel) { sel.textContent = '✅ Done'; sel.className = 'qst done'; }
+
+  // Populate the live result panel
+  populateResultPanel(nc);
+
+  renderCases();
+  const sw = document.getElementById('sesswrap'); sw.style.display = 'block';
+  renderGrid('grs', CASES.filter(c => sessIds.includes(c.id)));
+  toast('🤖', 'Case Created', `${nc.title.slice(0,42)}… added as ${id}`);
+}
+
+// Populate the right-hand result panel with the case data immediately after scan
+function populateResultPanel(c) {
+  const tm = TYPE_META[c.type] || TYPE_META.civil;
+  const bc = {urgent:'bu', moderate:'bm', low:'bl'}[c.urgency] || 'bl';
+  const bl = {urgent:'🔴 Urgent', moderate:'🟡 Moderate', low:'🟢 Low'}[c.urgency] || '🟢 Low';
+  const bannerBg = {urgent:'rgba(217,95,95,0.06)', moderate:'rgba(212,145,74,0.06)', low:'rgba(74,171,124,0.05)'}[c.urgency] || 'rgba(201,168,76,0.03)';
+
+  // Update header
+  document.getElementById('rp-header').style.background = bannerBg;
+  document.getElementById('rp-type-icon').textContent = tm.icon;
+  const typeLbl = document.getElementById('rp-type-label');
+  typeLbl.textContent = tm.label;
+  typeLbl.style.cssText = `font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.08em;text-transform:uppercase;background:${tm.bgColor};color:${tm.textColor}`;
+  const ubadge = document.getElementById('rp-urgency-badge');
+  ubadge.className = 'ubdg ' + bc;
+  ubadge.textContent = bl;
+  ubadge.style.opacity = '1';
+  document.getElementById('rp-title').textContent = c.title;
+  document.getElementById('rp-id').textContent = c.id;
+  document.getElementById('rp-jur').textContent = c.jurisdiction || '';
+  document.getElementById('rp-jur-sep').style.display = c.jurisdiction ? '' : 'none';
+
+  // Summary
+  const sumEl = document.getElementById('rp-summary');
+  sumEl.textContent = c.summary || 'No summary available.';
+  const accentColor = {urgent:'var(--urgent)', moderate:'var(--moderate)', low:'var(--low)'}[c.urgency] || 'var(--gold)';
+  sumEl.style.borderLeftColor = accentColor;
+
+  // Detail cards
+  const detailRows = [
+    { icon:'👥', label:'Parties',            val: c.parties      || '—' },
+    { icon:'⚖️', label:'Legal Issue',        val: c.legalIssue   || '—' },
+    { icon:'📅', label:'Key Dates',          val: c.keyDates     || '—' },
+    { icon:'🎓', label:'Expertise Required', val: c.expertise    || '—' },
+    { icon:'🏛️', label:'Jurisdiction',       val: c.jurisdiction || '—' },
+    { icon:'💰', label:'Estimated Value',    val: c.estimatedValue || 'Not specified' },
+  ];
+  document.getElementById('rp-details').innerHTML = detailRows.map(d =>
+    `<div style="background:rgba(255,255,255,.02);border:1px solid rgba(122,144,170,.08);border-radius:8px;padding:10px 12px">
+       <div style="font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--slate);font-weight:700;margin-bottom:4px">${d.icon} ${d.label}</div>
+       <div style="font-size:12.5px;color:var(--cream);font-weight:500;line-height:1.45">${d.val}</div>
+     </div>`
+  ).join('');
+
+  // Risk factors
+  document.getElementById('rp-risk').textContent = c.riskFactors || 'No specific risk factors identified.';
+
+  // Next steps
+  document.getElementById('rp-next').textContent = c.nextSteps || 'No next steps identified.';
+
+  // Tags
+  document.getElementById('rp-tags').innerHTML = (c.tags||[]).map(t =>
+    `<span class="tg">${t}</span>`
+  ).join('') || '<span style="font-size:12px;color:var(--slate)">No tags</span>';
+
+  // Complexity bars
+  document.getElementById('rp-cplx').innerHTML = CPLX_FIELDS.map(f => {
+    const val = f.fn(c);
+    const col = val >= 80 ? 'var(--urgent)' : val >= 55 ? 'var(--moderate)' : 'var(--low)';
+    return `<div class="cplx-row">
+      <div class="cplx-lbl">${f.label}</div>
+      <div class="cplx-trk"><div class="cplx-fill" style="width:${val}%;background:${col}"></div></div>
+      <div class="cplx-pct" style="color:${col}">${val}%</div>
+    </div>`;
+  }).join('');
+
+  // View button
+  document.getElementById('rp-view-btn').onclick = () => {
+    navTo(document.querySelector('[data-page=repository]'), 'repository');
+  };
+
+  // Swap scanning → results
+  document.getElementById('rp-scanning').style.display = 'none';
+  document.getElementById('rp-results').style.display = 'block';
+}
+
+function resetUpload() {
+  document.getElementById('dz').style.display = '';
+  document.getElementById('analysis-workspace').style.display = 'none';
+  document.getElementById('rp-scanning').style.display = 'block';
+  document.getElementById('rp-results').style.display = 'none';
+  document.getElementById('strm').textContent = '';
+  document.getElementById('ql').innerHTML = '';
+  document.getElementById('qw').classList.remove('vis');
+  document.getElementById('sesswrap').style.display = 'none';
+  document.getElementById('fi').value = '';
+  [1,2,3,4].forEach(n => { const e = document.getElementById('ps'+n); e.classList.remove('act','done'); });
+  sessIds = [];
+  queue = [];
+  busy = false;
+}
+
+function fallback(fn, txt) {
+  const s = (fn+' '+txt).toLowerCase();
+  const t = s.includes('criminal')||s.includes('charge')||s.includes('offence') ? 'criminal'
+    : s.includes('family')||s.includes('divorce')||s.includes('custody') ? 'family'
+    : s.includes('corporate')||s.includes('shareholder') ? 'corporate' : 'civil';
+  return {
+    title: fn.replace(/\.(pdf|txt|doc|docx|md)$/i,'').replace(/[-_]/g,' '),
+    type:t, urgency:'moderate', jurisdiction:'TBD', expertise:'General Practice',
+    complexity:50, tags:[t.charAt(0).toUpperCase()+t.slice(1),'Review Required'],
+    summary:`Document: ${fn}. Automated classification applied. Please review and update case details.`,
+    parties:'Unknown', keyDates:'Unknown', legalIssue:'Pending manual review',
+    riskFactors:'Requires manual assessment', nextSteps:'Review and classify document',
+    estimatedValue:'Not specified'
+  };
+}
+
+function actStep(n) { document.getElementById('ps'+n).classList.add('act'); }
+function doneStep(n) { const e = document.getElementById('ps'+n); e.classList.remove('act'); e.classList.add('done'); }
+function app(el, txt) { el.textContent += txt; el.scrollTop = el.scrollHeight; }
+function addCur(el) { const c = document.createElement('span'); c.className = 'cur'; el.appendChild(c); return c; }
+// Smart file reader: extracts text from PDF using pdf.js, or reads text files directly
+async function readTxt(file) {
+  const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+  if (isPDF) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const typedArray = new Uint8Array(e.target.result);
+          const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
+          let fullText = '';
+          const maxPages = Math.min(pdf.numPages, 20); // cap at 20 pages
+          for (let i = 1; i <= maxPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            const pageText = content.items.map(item => item.str).join(' ');
+            fullText += pageText + '\n';
+          }
+          resolve(fullText.trim() || '(PDF parsed but no extractable text found — may be scanned image)');
+        } catch(err) {
+          reject(new Error('PDF parse failed: ' + err.message));
+        }
+      };
+      reader.onerror = () => reject(new Error('File read failed'));
+      reader.readAsArrayBuffer(file);
+    });
+  } else {
+    // Plain text, markdown, doc etc — read as text
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = e => resolve(e.target.result);
+      r.onerror = () => reject(new Error('Read failed'));
+      r.readAsText(file);
+    });
+  }
+}
+function sl(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ═══════════════ CASE MODAL — fully dynamic ═══════════════
+
+const TYPE_META = {
+  family:    { icon:'👨‍👩‍👧', label:'Family Law',      bgColor:'rgba(168,85,247,0.12)', textColor:'#c084fc' },
+  criminal:  { icon:'⚖️',   label:'Criminal Law',    bgColor:'rgba(217,95,95,0.12)',  textColor:'#f87171' },
+  civil:     { icon:'🏛️',   label:'Civil Litigation',bgColor:'rgba(76,142,175,0.12)', textColor:'#60b4d8' },
+  corporate: { icon:'🏢',   label:'Corporate Law',   bgColor:'rgba(201,168,76,0.12)', textColor:'#e2c47a' },
+};
+
+// Lawyers pool — matched to the select options
+const LAWYERS = [
+  { name:'Sarah Chen',     specialty:'Family Law',       initials:'SC', color:'#4aab7c' },
+  { name:'David Okafor',   specialty:'Criminal Defence', initials:'DO', color:'#7a90aa' },
+  { name:'Priya Nair',     specialty:'Corporate Law',    initials:'PN', color:'#c9a84c' },
+  { name:'James Whitfield',specialty:'Civil Litigation', initials:'JW', color:'#60b4d8' },
+  { name:'Anika Patel',    specialty:'General Practice', initials:'AP', color:'#a855f7' },
+];
+
+// Return lawyer object by matching stored string (which may be "Name – Specialty")
+function findLawyer(assignedStr) {
+  if (!assignedStr) return null;
+  return LAWYERS.find(l => assignedStr.includes(l.name)) || null;
+}
+
+const CPLX_FIELDS = [
+  { label:'Overall',      fn: c => c.complexity },
+  { label:'Legal Risk',   fn: c => {
+      // Driven by case type and urgency, not just overall complexity
+      const typeBase = {criminal:85, family:70, corporate:75, civil:60}[c.type] ?? 65;
+      const urgencyMod = c.urgency==='urgent' ? 15 : c.urgency==='moderate' ? 0 : -15;
+      return Math.max(5, Math.min(99, Math.round((typeBase + urgencyMod + c.complexity) / 2)));
+  }},
+  { label:'Doc Volume',   fn: c => {
+      // Proxy: number of tags + key dates mentioned suggests paperwork volume
+      const tagCount = (c.tags||[]).length;
+      const dateCount = (c.keyDates||'').split(',').filter(Boolean).length;
+      const base = Math.round(c.complexity * 0.6);
+      return Math.max(5, Math.min(99, base + tagCount * 4 + dateCount * 3));
+  }},
+  { label:'Time Pressure',fn: c => {
+      // Purely urgency-led, with complexity as a secondary factor
+      const urgencyBase = c.urgency==='urgent' ? 82 : c.urgency==='moderate' ? 52 : 22;
+      return Math.max(5, Math.min(99, Math.round(urgencyBase + (c.complexity - 50) * 0.18)));
+  }},
+];
+
+// Normalise a case that may be missing newer fields (backwards compat with old localStorage data)
+function normalise(c) {
+  return {
+    riskFactors:    'Requires manual assessment',
+    nextSteps:      'Review and update case details',
+    estimatedValue: 'Not specified',
+    adminFlagged:   false,
+    ...c,
+    summary:      c.summary      || 'No AI summary available.',
+    parties:      c.parties      || '—',
+    keyDates:     c.keyDates     || '—',
+    legalIssue:   c.legalIssue   || '—',
+    expertise:    c.expertise    || '—',
+    jurisdiction: c.jurisdiction || 'TBD',
+    fileName:     c.fileName     || '—',
+    tags:         Array.isArray(c.tags) ? c.tags : [],
+    type:         c.type         || 'civil',
+    urgency:      c.urgency      || 'low',
+    complexity:   Math.max(1, Math.min(100, parseInt(c.complexity) || 50)),
+  };
+}
+
+function openCase(id) {
+  const raw = CASES.find(x => x.id === id);
+  if (!raw) return;
+  activeId = id;
+  editMode = false;
+  const c = normalise(raw);
+
+  // ── Banner ──
+  const bannerClass = { urgent:'banner-urgent', moderate:'banner-moderate', low:'banner-low' }[c.urgency] || 'banner-low';
+  document.getElementById('m-banner').className = `modal-banner ${bannerClass}`;
+
+  // ── Type chip ──
+  const tm = TYPE_META[c.type] || TYPE_META.civil;
+  document.getElementById('m-type-icon').textContent  = tm.icon;
+  const typeLabelEl = document.getElementById('m-type-label');
+  typeLabelEl.textContent = tm.label;
+  typeLabelEl.style.cssText = `background:${tm.bgColor};color:${tm.textColor};padding:2px 8px;border-radius:4px;font-size:9.5px;font-weight:700;letter-spacing:.08em`;
+
+  // ── Urgency badge ──
+  const bc = { urgent:'bu', moderate:'bm', low:'bl' }[c.urgency] || 'bl';
+  const bl = { urgent:'🔴 Urgent', moderate:'🟡 Moderate', low:'🟢 Low' }[c.urgency] || '🟢 Low';
+  const mbadge = document.getElementById('m-badge');
+  mbadge.className = 'ubdg ' + bc;
+  mbadge.textContent = bl;
+
+  // ── Header text ──
+  document.getElementById('m-title').textContent = c.title;
+  document.getElementById('m-id').textContent    = c.id;
+  document.getElementById('m-jur').textContent   = c.jurisdiction;
+  document.getElementById('m-date').textContent  = c.date || '';
+
+  // ── AI Summary ──
+  const sumEl = document.getElementById('m-summary');
+  sumEl.className = 'summary-box sum-' + c.urgency;
+  sumEl.textContent = c.summary;
+  document.getElementById('m-summary-edit').value = c.summary;
+
+  // ── Edit fields pre-fill ──
+  document.getElementById('ef-legalIssue').value    = c.legalIssue;
+  document.getElementById('ef-parties').value       = c.parties;
+  document.getElementById('ef-keyDates').value      = c.keyDates;
+  document.getElementById('ef-expertise').value     = c.expertise;
+  document.getElementById('ef-riskFactors').value   = c.riskFactors;
+  document.getElementById('ef-nextSteps').value     = c.nextSteps;
+  document.getElementById('ef-estimatedValue').value = c.estimatedValue;
+  document.getElementById('ef-urgency').value       = c.urgency;
+
+  // ── Detail cards ──
+  const detailRows = [
+    { icon:'⚖️',  label:'Legal Issue',           val: c.legalIssue,      full: true },
+    { icon:'👥',  label:'Parties',               val: c.parties },
+    { icon:'📅',  label:'Key Dates',             val: c.keyDates },
+    { icon:'🎓',  label:'Expertise Required',    val: c.expertise },
+    { icon:'⚠️',  label:'Risk Factors',          val: c.riskFactors,     full: true },
+    { icon:'➡️',  label:'Recommended Next Steps',val: c.nextSteps,       full: true },
+    { icon:'💰',  label:'Estimated Value',       val: c.estimatedValue,  highlight: true },
+    { icon:'📄',  label:'Source Document',       val: c.fileName,        mono: true },
+  ];
+  document.getElementById('m-details').innerHTML = detailRows.map(d =>
+    `<div class="detail-card${d.full ? ' full' : ''}">
+       <div class="dk"><span class="dkicon">${d.icon}</span>${d.label}</div>
+       <div class="dv${d.highlight ? ' highlight' : ''}${d.mono ? ' mono' : ''}">${d.val || '—'}</div>
+     </div>`
+  ).join('');
+
+  // ── Tags ──
+  const tags = c.tags;
+  document.getElementById('m-tags-sec').style.display = tags.length ? '' : 'none';
+  document.getElementById('m-tags').innerHTML = tags.map(t => `<span class="tg">${t}</span>`).join('');
+
+  // ── Complexity bars ──
+  document.getElementById('m-cplx').innerHTML = CPLX_FIELDS.map(f => {
+    const val = f.fn(c);
+    const col = val >= 80 ? 'var(--urgent)' : val >= 55 ? 'var(--moderate)' : 'var(--low)';
+    return `<div class="cplx-row">
+      <div class="cplx-lbl">${f.label}</div>
+      <div class="cplx-trk"><div class="cplx-fill" style="width:${val}%;background:${col}"></div></div>
+      <div class="cplx-pct" style="color:${col}">${val}%</div>
+    </div>`;
+  }).join('');
+
+  // ── Urgent flag banner ──
+  document.getElementById('m-urgent-flag').style.display = c.adminFlagged ? '' : 'none';
+
+  // ── Assignment indicator ──
+  const indicator = document.getElementById('m-assigned-indicator');
+  const lawyer = findLawyer(c.assigned);
+  if (c.assigned) {
+    const lColor = lawyer ? lawyer.color : 'var(--gold)';
+    const lInitials = lawyer ? lawyer.initials : c.assigned.slice(0,2).toUpperCase();
+    const lSpecialty = lawyer ? lawyer.specialty : '';
+    indicator.innerHTML = `<div class="assigned-row">
+      <div class="assigned-av" style="background:linear-gradient(135deg,${lColor},var(--navy-light))">${lInitials}</div>
+      <div>
+        <div class="assigned-label">Currently Assigned To</div>
+        <div class="assigned-name">${c.assigned.split('–')[0].trim()}${lSpecialty ? ` <span style="font-size:11px;color:var(--slate)">· ${lSpecialty}</span>` : ''}</div>
+      </div>
+    </div>`;
+  } else {
+    indicator.innerHTML = `<div style="font-size:12px;color:var(--urgent);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+      <span>⚠</span> This case is currently unassigned
+    </div>`;
+  }
+
+  // ── Reset edit mode UI ──
+  setEditModeUI(false);
+
+  // ── Role-based controls ──
+  const isAdmin = currentUser?.isAdmin;
+  const isLawyer = !isAdmin;
+  const lawyerName = currentUser?.lawyerName;
+  const isMyCase = c.assigned && lawyerName && c.assigned.includes(lawyerName);
+  const hasPendingDrop = DROP_REQUESTS.some(r => r.caseId === c.id);
+
+  // Admin controls
+  document.getElementById('mf-admin').style.display = isAdmin ? 'flex' : 'none';
+  document.getElementById('m-flag-sec').style.display = isAdmin ? '' : 'none';
+  const flagBtn = document.getElementById('m-flag-btn');
+  flagBtn.textContent = c.adminFlagged ? '🔕 Remove Urgent Flag' : '🚨 Flag as Urgent';
+  flagBtn.style.borderColor = c.adminFlagged ? 'rgba(122,144,170,.3)' : 'rgba(217,95,95,.4)';
+  flagBtn.style.color = c.adminFlagged ? 'var(--slate)' : 'var(--urgent)';
+
+  // Admin assignment select
+  const sel = document.getElementById('masel');
+  sel.style.display = isAdmin ? '' : 'none';
+  sel.innerHTML = `<option value="">— Select a lawyer —</option>` +
+    LAWYERS.map(l => {
+      const optVal = `${l.name} – ${l.specialty}`;
+      const selected = c.assigned && c.assigned.includes(l.name) ? ' selected' : '';
+      return `<option value="${optVal}"${selected}>${l.name} – ${l.specialty}</option>`;
+    }).join('');
+
+  // Lawyer controls
+  document.getElementById('mf-lawyer').style.display = isLawyer ? 'flex' : 'none';
+  // Pick-up button: show only if unassigned and lawyer
+  document.getElementById('m-pickup-btn').style.display = (isLawyer && !c.assigned) ? '' : 'none';
+  // Drop button: show only if this lawyer is assigned and no pending request
+  document.getElementById('m-drop-btn').style.display = (isLawyer && isMyCase && !hasPendingDrop) ? '' : 'none';
+  document.getElementById('m-drop-btn').disabled = false;
+  // Pending drop notice
+  document.getElementById('m-drop-pending').style.display = (isLawyer && isMyCase && hasPendingDrop) ? '' : 'none';
+  // Readonly notice: lawyer, not their case, not unassigned
+  document.getElementById('m-readonly').style.display = (isLawyer && !isMyCase && c.assigned) ? '' : 'none';
+
+  document.querySelector('.modal').scrollTop = 0;
+  document.getElementById('ov').classList.add('open');
+}
+
+function closeM() {
+  if (editMode) setEditModeUI(false);
+  document.getElementById('ov').classList.remove('open');
+}
+
+// ═══════════════ EDIT MODE ═══════════════
+function setEditModeUI(on) {
+  editMode = on;
+  document.getElementById('m-edit-bar').classList.toggle('on', on);
+  // View vs edit for summary
+  document.getElementById('m-summary').style.display = on ? 'none' : '';
+  document.getElementById('m-summary-edit').style.display = on ? '' : 'none';
+  // Edit fields grid vs detail cards
+  document.getElementById('m-edit-fields').style.display = on ? '' : 'none';
+  document.getElementById('m-details').style.display = on ? 'none' : '';
+
+  const isAdmin = currentUser?.isAdmin;
+  if (isAdmin) {
+    document.getElementById('m-edit-btn').style.display       = on ? 'none' : '';
+    document.getElementById('m-edit-save-btn').style.display  = on ? '' : 'none';
+    document.getElementById('m-save-btn').style.display       = on ? 'none' : '';
+    document.getElementById('m-del-btn').style.display        = on ? 'none' : '';
+  } else {
+    document.getElementById('m-lawyer-edit-btn').style.display      = on ? 'none' : '';
+    document.getElementById('m-lawyer-edit-save-btn').style.display = on ? '' : 'none';
+  }
+}
+
+function toggleEditMode() {
+  const c = CASES.find(x => x.id === activeId); if (!c) return;
+  setEditModeUI(!editMode);
+  if (editMode) {
+    // Re-fill fields with latest data
+    document.getElementById('m-summary-edit').value   = c.summary || '';
+    document.getElementById('ef-legalIssue').value    = c.legalIssue || '';
+    document.getElementById('ef-parties').value       = c.parties || '';
+    document.getElementById('ef-keyDates').value      = c.keyDates || '';
+    document.getElementById('ef-expertise').value     = c.expertise || '';
+    document.getElementById('ef-riskFactors').value   = c.riskFactors || '';
+    document.getElementById('ef-nextSteps').value     = c.nextSteps || '';
+    document.getElementById('ef-estimatedValue').value= c.estimatedValue || '';
+    document.getElementById('ef-urgency').value       = c.urgency || 'low';
+  }
+}
+
+function saveEdits() {
+  const c = CASES.find(x => x.id === activeId); if (!c) return;
+  c.summary        = document.getElementById('m-summary-edit').value.trim()    || c.summary;
+  c.legalIssue     = document.getElementById('ef-legalIssue').value.trim()     || c.legalIssue;
+  c.parties        = document.getElementById('ef-parties').value.trim()         || c.parties;
+  c.keyDates       = document.getElementById('ef-keyDates').value.trim()        || c.keyDates;
+  c.expertise      = document.getElementById('ef-expertise').value.trim()       || c.expertise;
+  c.riskFactors    = document.getElementById('ef-riskFactors').value.trim()     || c.riskFactors;
+  c.nextSteps      = document.getElementById('ef-nextSteps').value.trim()       || c.nextSteps;
+  c.estimatedValue = document.getElementById('ef-estimatedValue').value.trim()  || c.estimatedValue;
+  // Lawyers can only edit content fields, not urgency — only admin can change urgency
+  if (currentUser?.isAdmin) {
+    c.urgency = document.getElementById('ef-urgency').value || c.urgency;
+  }
+  save(); renderCases();
+  setEditModeUI(false);
+  // Re-open to refresh view
+  openCase(activeId);
+  toast('💾', 'Saved', 'Case details updated successfully');
+}
+
+// ═══════════════ PICK UP CASE ═══════════════
+function pickUpCase() {
+  const c = CASES.find(x => x.id === activeId); if (!c) return;
+  if (c.assigned) { toast('⚠️', 'Already Assigned', 'This case has already been taken'); return; }
+  const l = LAWYERS.find(lw => lw.name === currentUser.lawyerName);
+  if (!l) return;
+  c.assigned = `${l.name} – ${l.specialty}`;
+  save(); renderCases();
+  openCase(activeId); // refresh modal
+  toast('✋', 'Case Picked Up', `You are now assigned to ${c.title.slice(0,40)}`);
+}
+
+// ═══════════════ DROP REQUESTS ═══════════════
+let _confirmCallback = null;
+function showConfirm(title, msg, okLabel, okClass, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.textContent = okLabel;
+  btn.className = 'btn ' + (okClass || 'bdng');
+  _confirmCallback = cb;
+  document.getElementById('confirm-ov').classList.add('open');
+}
+function confirmOk() {
+  document.getElementById('confirm-ov').classList.remove('open');
+  if (_confirmCallback) { _confirmCallback(); _confirmCallback = null; }
+}
+function confirmCancel() {
+  document.getElementById('confirm-ov').classList.remove('open');
+  _confirmCallback = null;
+}
+
+function requestDrop() {
+  const c = CASES.find(x => x.id === activeId); if (!c) return;
+  showConfirm(
+    'Request Case Drop',
+    `Submit a request to drop "${c.title}"? An admin will review and either approve or deny the request.`,
+    'Submit Request', 'bdng',
+    () => {
+      DROP_REQUESTS.push({
+        id: Date.now(),
+        caseId: c.id,
+        caseTitle: c.title,
+        lawyerName: currentUser.name,
+        ts: new Date().toLocaleString('en-AU')
+      });
+      save(); updateStats();
+      openCase(activeId); // refresh modal
+      toast('📤', 'Request Sent', 'Your drop request has been submitted for admin approval');
+    }
+  );
+}
+
+function approveDropRequest(reqId) {
+  const req = DROP_REQUESTS.find(r => r.id === reqId); if (!req) return;
+  const c = CASES.find(x => x.id === req.caseId);
+  if (c) { c.assigned = null; }
+  DROP_REQUESTS = DROP_REQUESTS.filter(r => r.id !== reqId);
+  save(); renderCases(); renderApprovals(); updateStats();
+  toast('✅', 'Drop Approved', `${req.lawyerName} has been unassigned from "${req.caseTitle.slice(0,36)}"`);
+}
+
+function denyDropRequest(reqId) {
+  const req = DROP_REQUESTS.find(r => r.id === reqId); if (!req) return;
+  showConfirm(
+    'Deny Drop Request',
+    `Deny ${req.lawyerName}'s request to drop "${req.caseTitle}"? The lawyer will remain assigned.`,
+    'Deny Request', 'bdng',
+    () => {
+      DROP_REQUESTS = DROP_REQUESTS.filter(r => r.id !== reqId);
+      save(); renderApprovals(); updateStats();
+      toast('🔒', 'Request Denied', `${req.lawyerName} remains assigned to the case`);
+    }
+  );
+}
+
+function renderApprovals() {
+  const el = document.getElementById('approvals-list'); if (!el) return;
+  if (!DROP_REQUESTS.length) {
+    el.innerHTML = `<div class="empty-approvals"><div style="font-size:40px;margin-bottom:12px">✅</div><div style="font-family:'Playfair Display',serif;font-size:17px;color:var(--white);margin-bottom:6px">No Pending Requests</div><div>All drop requests have been resolved.</div></div>`;
+    return;
+  }
+  el.innerHTML = DROP_REQUESTS.map(r => `
+    <div class="approval-item">
+      <div style="font-size:28px;flex-shrink:0">📋</div>
+      <div class="approval-item-info">
+        <div class="approval-item-title">${r.caseTitle}</div>
+        <div class="approval-item-meta">Requested by <strong style="color:var(--cream)">${r.lawyerName}</strong> · ${r.ts}</div>
+      </div>
+      <div class="approval-actions">
+        <button class="aapprove" onclick="approveDropRequest(${r.id})">✓ Approve</button>
+        <button class="adeny" onclick="denyDropRequest(${r.id})">✕ Deny</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════ URGENT FLAG ═══════════════
+function toggleUrgentFlag() {
+  const c = CASES.find(x => x.id === activeId); if (!c) return;
+  c.adminFlagged = !c.adminFlagged;
+  // If flagging, also bump urgency to urgent
+  if (c.adminFlagged) c.urgency = 'urgent';
+  save(); renderCases();
+  openCase(activeId); // refresh modal
+  toast(c.adminFlagged ? '🚨' : '✅', c.adminFlagged ? 'Flagged Urgent' : 'Flag Removed',
+    c.adminFlagged ? 'Case marked urgent — all lawyers notified' : 'Urgent flag removed from case');
+}
+
+function confirmAssign() {
+  const val = document.getElementById('masel').value;
+  const c = CASES.find(x => x.id === activeId); if (!c) return;
+  c.assigned = val || null; save(); renderCases();
+  openCase(activeId); // refresh modal state
+  toast('✅', 'Saved', val ? `Assigned to ${val.split('–')[0].trim()}` : 'Assignment cleared');
+}
+
+function delCase() {
+  const c = CASES.find(x => x.id === activeId); if (!c) return;
+  showConfirm(
+    'Delete Case',
+    `Permanently remove "${c.title}" from the repository? This cannot be undone.`,
+    '🗑 Delete', 'bdng',
+    () => {
+      CASES = CASES.filter(x => x.id !== activeId);
+      sessIds = sessIds.filter(i => i !== activeId);
+      DROP_REQUESTS = DROP_REQUESTS.filter(r => r.caseId !== activeId);
+      save(); renderCases(); closeM();
+      toast('🗑', 'Deleted', 'Case removed from repository');
+    }
+  );
+}
+
+// ═══════════════ TOAST ═══════════════
+function toast(icon, title, msg) {
+  document.getElementById('ticon').textContent = icon;
+  document.getElementById('ttitle').textContent = title;
+  document.getElementById('tmsg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3800);
+}
+</script>
+</body>
+</html>

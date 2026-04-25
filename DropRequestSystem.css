@@ -1,0 +1,5 @@
+/* ── DROP REQUEST SYSTEM ───────────────────────────────────── */
+.drop-req-btn{width:100%;height:38px;background:rgba(217,95,95,.08);border:1px solid rgba(217,95,95,.3);border-radius:8px;color:var(--urgent);font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px}
+.drop-req-btn:hover{background:rgba(217,95,95,.15)}
+.drop-req-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.drop-pending-notice{display:flex;align-items:center;gap:7px;background:rgba(212,145,74,.08);border:1px solid rgba(212,145,74,.25);border-radius:8px;padding:9px 13px;font-size:12px;color:var(--moderate);margin-top:6px}
